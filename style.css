@@ -270,6 +270,48 @@ textarea {
     animation: fadeIn 0.2s ease;
 }
 
+/* --- APPLE TRANS EDITOR --- */
+.apple-trans-editor-container {
+    margin-top: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+}
+
+.apple-trans-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.apple-trans-row:last-child {
+    border-bottom: none;
+}
+
+.apple-trans-orig {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.apple-trans-input {
+    background: var(--bg-main) !important;
+    border: 1px solid var(--border) !important;
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    min-height: auto !important;
+}
+
+.apple-trans-input:focus {
+    border-color: var(--primary) !important;
+    outline: none;
+}
+
 .separator-text {
     margin: 1rem 0 0.5rem 0;
     font-size: 0.8rem;

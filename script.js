@@ -74,7 +74,7 @@ function init() {
         'video-canvas', 'sync-overlay', 'tap-btn', 'stop-sync-btn', 'timeline-editor',
         'sync-current-text', 'sync-next-text', 'progress-fill', 'volume-slider',
         'export-start', 'export-end', 'set-start-btn', 'set-end-btn', 'progress-track', 'time-code',
-        'apple-lyrics-input'
+        'apple-lyrics-input', 'apple-trans-editor'
     ];
     ids.forEach(id => {
         const el = document.getElementById(id);
@@ -362,11 +362,43 @@ function parseAppleLyrics() {
                 type: 'karaoke'
             };
         });
-
+        renderAppleTranslationEditor();
     } catch (e) {
         console.error("Error parsing Apple Lyrics:", e);
         dom['status-msg'].textContent = "Error en JSON de Apple.";
     }
+}
+
+function renderAppleTranslationEditor() {
+    const container = dom['apple-trans-editor'];
+    if (!container) return;
+    container.innerHTML = '<h4 style="margin: 0.5rem 0; font-size: 0.8rem; color: var(--primary);">Traductor de Líneas</h4>';
+
+    state.syncedLyrics.forEach((line, index) => {
+        if (line.type !== 'karaoke') return;
+
+        const row = document.createElement('div');
+        row.className = 'apple-trans-row';
+
+        const origText = document.createElement('div');
+        origText.className = 'apple-trans-orig';
+        origText.textContent = line.text;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'apple-trans-input';
+        input.placeholder = 'Traducción para esta línea...';
+        input.value = line.trans || '';
+
+        input.oninput = (e) => {
+            state.syncedLyrics[index].trans = e.target.value;
+            state.translation[index] = e.target.value;
+        };
+
+        row.appendChild(origText);
+        row.appendChild(input);
+        container.appendChild(row);
+    });
 }
 
 function parseTTMLTime(timeStr) {
