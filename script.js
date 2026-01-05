@@ -413,10 +413,16 @@ function parseTTMLTime(timeStr) {
 
 function parseAllLyrics() {
     if (state.lyricType === 'apple') {
-        state.translation = dom['lyrics-translation'].value.split('\n').filter(l => l.trim() !== '');
+        // Hide standard translation box when in Apple mode
+        dom['lyrics-translation'].style.display = 'none';
+        document.querySelector('.separator-text').style.display = 'none';
+
         parseAppleLyrics();
         if (dom['timeline-editor'].classList.contains('active')) renderTimelineEditor();
         return;
+    } else {
+        dom['lyrics-translation'].style.display = 'block';
+        document.querySelector('.separator-text').style.display = 'flex';
     }
 
     const rawLines = dom['lyrics-input'].value.split('\n').filter(l => l.trim() !== '');
