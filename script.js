@@ -375,7 +375,6 @@ function renderAppleTranslationEditor() {
     container.innerHTML = '<h4 style="margin: 0.5rem 0; font-size: 0.8rem; color: var(--primary);">Traductor de Líneas</h4>';
 
     state.syncedLyrics.forEach((line, index) => {
-        // Instrumental insertion button before EACH line (except the first one if you prefer, or all of them)
         if (index > 0) {
             const addBtn = document.createElement('button');
             addBtn.className = 'add-instrumental-btn';
@@ -387,9 +386,48 @@ function renderAppleTranslationEditor() {
         const row = document.createElement('div');
         row.className = 'apple-trans-row' + (line.type === 'instrumental' ? ' instrumental' : '');
 
+        // Header with Original Text and Actions
+        const header = document.createElement('div');
+        header.className = 'apple-trans-header';
+
         const origText = document.createElement('div');
         origText.className = 'apple-trans-orig';
         origText.textContent = line.type === 'instrumental' ? 'Instrumental' : line.text;
+
+        const actions = document.createElement('div');
+        actions.className = 'apple-trans-actions';
+
+        // Effect Selector
+        const select = document.createElement('select');
+        select.className = 'effect-select';
+
+        // Get all effects from the registry
+        const effects = ['none', ...Object.keys(window.EffectsRegistry || {})];
+
+        effects.forEach(eff => {
+            const opt = document.createElement('option');
+            opt.value = eff;
+            opt.textContent = eff.charAt(0).toUpperCase() + eff.slice(1).replace('_', ' ');
+            if (line.effect === eff) opt.selected = true;
+            select.appendChild(opt);
+        });
+        select.onchange = (e) => {
+            state.syncedLyrics[index].effect = e.target.value;
+        };
+
+        // Remove Button (Only for injected instrumentals or extra lines)
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-line-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        removeBtn.onclick = () => {
+            state.syncedLyrics.splice(index, 1);
+            renderAppleTranslationEditor();
+        };
+
+        actions.appendChild(select);
+        actions.appendChild(removeBtn);
+        header.appendChild(origText);
+        header.appendChild(actions);
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -402,7 +440,7 @@ function renderAppleTranslationEditor() {
             state.translation[index] = e.target.value;
         };
 
-        row.appendChild(origText);
+        row.appendChild(header);
         row.appendChild(input);
         container.appendChild(row);
     });
@@ -665,12 +703,14 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
 
     ctx.save();
     let shakeX = 0, shakeY = 0;
-    if (lineObj.effect === 'pulse') {
-        scale *= 0.5; // Achicar base al 50%
-        scale += (avgVol / 255) * 0.5; // Pulse de 50%
+
+    // EXECUTE EXTERNAL EFFECT FROM REGISTRY
+    if (lineObj.effect && lineObj.effect !== 'none' && window.EffectsRegistry && window.EffectsRegistry[lineObj.effect]) {
+        window.EffectsRegistry[lineObj.effect](ctx, {
+            w, h, time, avgVol, scale, duration, alpha,
+            fontSizeMain, lineHeightMain, centerX, startY
+        });
     }
-    else if (lineObj.effect === 'glitch') { shakeX = (Math.random() - 0.5) * 20; shakeY = (Math.random() - 0.5) * 5; if (Math.random() > 0.8) ctx.globalCompositeOperation = 'exclusion'; }
-    else if (lineObj.effect === 'flash' && Math.floor(Date.now() / 50) % 2 === 0) { ctx.fillStyle = '#fff'; ctx.shadowBlur = 100; ctx.shadowColor = '#fff'; }
 
     ctx.translate(centerX + shakeX, startY + yAnim + shakeY); ctx.scale(scale, scale); ctx.globalAlpha = alpha; ctx.textAlign = 'center';
     ctx.font = `800 ${fontSizeMain}px "${fontName}"`;
