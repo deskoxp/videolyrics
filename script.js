@@ -615,6 +615,7 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
 
     const charLimit = cfg.animation === 'typewriter' ? Math.floor(duration / 0.05) : 9999;
     let charsUsed = 0;
+    let yOffset = 0;
 
     if (lineObj.type === 'karaoke' && lineObj.syllables) {
         // Karaoke Rendering (Multi-line / Wrapped)
@@ -668,6 +669,7 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
             });
         });
         ctx.textAlign = 'center';
+        yOffset = ((actualLineCount * lineHeightMain) / 2) + gap;
     } else {
         // Standard Rendering
         mainLines.forEach((t, i) => {
@@ -677,12 +679,22 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
             if (lineObj.effect === 'glitch') { ctx.fillStyle = 'red'; ctx.globalAlpha = 0.7; ctx.fillText(drawT, 5, i * lineHeightMain); ctx.fillStyle = 'blue'; ctx.fillText(drawT, -5, i * lineHeightMain); ctx.fillStyle = cfg.color; ctx.globalAlpha = alpha; }
             ctx.fillText(drawT, 0, i * lineHeightMain);
         });
+        yOffset = (mainLines.length * lineHeightMain) + gap;
     }
 
+    // Draw Translation
     if (transLines.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = alpha; // Fix: Always use entry animation alpha, don't inherit from syllables
         ctx.font = `italic 500 ${fontSizeTrans}px "${cfg.transFont === 'inherit' ? fontName : cfg.transFont}"`;
-        ctx.fillStyle = cfg.accent; ctx.shadowBlur = 0;
-        transLines.forEach((t, i) => ctx.fillText(t, 0, (mainLines.length * lineHeightMain) + gap + (i * lineHeightTrans)));
+        ctx.fillStyle = cfg.accent;
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center';
+
+        transLines.forEach((t, i) => {
+            ctx.fillText(t, 0, yOffset + (i * lineHeightTrans));
+        });
+        ctx.restore();
     }
     ctx.restore();
 }
