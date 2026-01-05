@@ -375,14 +375,21 @@ function renderAppleTranslationEditor() {
     container.innerHTML = '<h4 style="margin: 0.5rem 0; font-size: 0.8rem; color: var(--primary);">Traductor de Líneas</h4>';
 
     state.syncedLyrics.forEach((line, index) => {
-        if (line.type !== 'karaoke') return;
+        // Instrumental insertion button before EACH line (except the first one if you prefer, or all of them)
+        if (index > 0) {
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-instrumental-btn';
+            addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Añadir Pausa Musical';
+            addBtn.onclick = () => injectInstrumental(index);
+            container.appendChild(addBtn);
+        }
 
         const row = document.createElement('div');
-        row.className = 'apple-trans-row';
+        row.className = 'apple-trans-row' + (line.type === 'instrumental' ? ' instrumental' : '');
 
         const origText = document.createElement('div');
         origText.className = 'apple-trans-orig';
-        origText.textContent = line.text;
+        origText.textContent = line.type === 'instrumental' ? 'Instrumental' : line.text;
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -399,6 +406,29 @@ function renderAppleTranslationEditor() {
         row.appendChild(input);
         container.appendChild(row);
     });
+}
+
+function injectInstrumental(index) {
+    const prevLine = state.syncedLyrics[index - 1];
+    const nextLine = state.syncedLyrics[index];
+
+    // Calculate mid-times
+    const start = prevLine.endTime || prevLine.time;
+    const end = nextLine.time;
+
+    const instrumentalLine = {
+        text: '🎵',
+        trans: '🎵',
+        time: start,
+        endTime: end,
+        type: 'instrumental',
+        syllables: [
+            { text: '🎵', begin: start, end: end }
+        ]
+    };
+
+    state.syncedLyrics.splice(index, 0, instrumentalLine);
+    renderAppleTranslationEditor();
 }
 
 function parseTTMLTime(timeStr) {
@@ -655,8 +685,8 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
     let charsUsed = 0;
     let yOffset = 0;
 
-    if (lineObj.type === 'karaoke' && lineObj.syllables) {
-        // Karaoke Rendering (Multi-line / Wrapped)
+    if ((lineObj.type === 'karaoke' || lineObj.type === 'instrumental') && lineObj.syllables) {
+        // Karaoke or Instrumental Rendering (Multi-line / Wrapped)
         let karaokeLines = [[]];
         let currentLineIdx = 0;
         let runningWidth = 0;
@@ -672,6 +702,11 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
             runningWidth += wordW;
         });
 
+        // Special scale for instrumental 
+        if (lineObj.type === 'instrumental') {
+            scale *= (1 + Math.sin(Date.now() / 200) * 0.1); // Pulse effect
+        }
+
         // Adjusted start position for multi-line karaoke
         const actualLineCount = karaokeLines.length;
         const lineOffset = (actualLineCount - 1) * lineHeightMain / 2;
@@ -684,6 +719,8 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
 
             lineSylls.forEach((s) => {
                 const wordWidth = ctx.measureText(s.text).width;
+
+                // Dimmed base
                 ctx.fillStyle = cfg.color;
                 ctx.globalAlpha = alpha * 0.2;
                 ctx.fillText(s.text, currentX, lineY);

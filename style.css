@@ -312,6 +312,33 @@ textarea {
     outline: none;
 }
 
+.add-instrumental-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    margin: 4px 8px;
+    transition: 0.2s;
+}
+
+.add-instrumental-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(0, 243, 255, 0.05);
+}
+
+.apple-trans-row.instrumental {
+    border-left: 3px solid var(--accent);
+    background: rgba(0, 243, 255, 0.02);
+}
+
 .separator-text {
     margin: 1rem 0 0.5rem 0;
     font-size: 0.8rem;
