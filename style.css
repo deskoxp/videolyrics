@@ -25,6 +25,10 @@ body {
     overflow: hidden;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .app-container {
     display: flex;
     height: 100%;
@@ -664,6 +668,52 @@ canvas {
     color: var(--text-muted);
     font-style: italic;
     margin-top: 0.25rem;
+}
+
+/* Timeline Editor */
+.timeline-container {
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    margin-top: 1rem;
+}
+
+.timeline-container.active {
+    display: block;
+}
+
+.timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.timeline-row:last-child {
+    border-bottom: none;
+}
+
+.timeline-row .time-input {
+    width: 70px;
+    padding: 0.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.timeline-row .lyric-preview {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Sync Overlay Adjustment */

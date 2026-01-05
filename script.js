@@ -618,8 +618,16 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
 
     if (lineObj.type === 'karaoke' && lineObj.syllables) {
         // Karaoke Rendering (Word by word)
-        const fullTextWidth = ctx.measureText(lineObj.text).width;
-        let currentX = -fullTextWidth / 2;
+        const rawWidth = ctx.measureText(lineObj.text).width;
+        let karaokeScale = 1.0;
+        if (rawWidth > maxWidth) {
+            karaokeScale = maxWidth / rawWidth;
+        }
+
+        ctx.save();
+        ctx.scale(karaokeScale, karaokeScale);
+
+        let currentX = -(rawWidth / 2);
         ctx.textAlign = 'left';
 
         lineObj.syllables.forEach((s) => {
@@ -651,6 +659,7 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
             }
             currentX += wordWidth;
         });
+        ctx.restore();
         ctx.textAlign = 'center'; // Restore for translation
     } else {
         // Standard Rendering
