@@ -617,50 +617,57 @@ function drawLyricsBlock(ctx, w, h, time, avgVol) {
     let charsUsed = 0;
 
     if (lineObj.type === 'karaoke' && lineObj.syllables) {
-        // Karaoke Rendering (Word by word)
-        const rawWidth = ctx.measureText(lineObj.text).width;
-        let karaokeScale = 1.0;
-        if (rawWidth > maxWidth) {
-            karaokeScale = maxWidth / rawWidth;
-        }
+        // Karaoke Rendering (Multi-line / Wrapped)
+        let karaokeLines = [[]];
+        let currentLineIdx = 0;
+        let runningWidth = 0;
 
-        ctx.save();
-        ctx.scale(karaokeScale, karaokeScale);
-
-        let currentX = -(rawWidth / 2);
-        ctx.textAlign = 'left';
-
-        lineObj.syllables.forEach((s) => {
-            const wordWidth = ctx.measureText(s.text).width;
-
-            // Draw background word (muted)
-            ctx.fillStyle = cfg.color;
-            ctx.globalAlpha = alpha * 0.2;
-            ctx.fillText(s.text, currentX, 0);
-
-            // Draw active part
-            if (time >= s.begin) {
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = cfg.accent; // Highlight color
-
-                if (time < s.end) {
-                    // Progress within word
-                    const p = (time - s.begin) / (s.end - s.begin);
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(currentX, -fontSizeMain, wordWidth * p, fontSizeMain * 2);
-                    ctx.clip();
-                    ctx.fillText(s.text, currentX, 0);
-                    ctx.restore();
-                } else {
-                    // Fully active
-                    ctx.fillText(s.text, currentX, 0);
-                }
+        lineObj.syllables.forEach(s => {
+            const wordW = ctx.measureText(s.text).width;
+            if (runningWidth + wordW > maxWidth && runningWidth > 0) {
+                currentLineIdx++;
+                karaokeLines[currentLineIdx] = [];
+                runningWidth = 0;
             }
-            currentX += wordWidth;
+            karaokeLines[currentLineIdx].push(s);
+            runningWidth += wordW;
         });
-        ctx.restore();
-        ctx.textAlign = 'center'; // Restore for translation
+
+        // Adjusted start position for multi-line karaoke
+        const actualLineCount = karaokeLines.length;
+        const lineOffset = (actualLineCount - 1) * lineHeightMain / 2;
+
+        ctx.textAlign = 'left';
+        karaokeLines.forEach((lineSylls, lineIdx) => {
+            const lineWidth = ctx.measureText(lineSylls.map(s => s.text).join('')).width;
+            let currentX = -lineWidth / 2;
+            const lineY = (lineIdx * lineHeightMain) - lineOffset;
+
+            lineSylls.forEach((s) => {
+                const wordWidth = ctx.measureText(s.text).width;
+                ctx.fillStyle = cfg.color;
+                ctx.globalAlpha = alpha * 0.2;
+                ctx.fillText(s.text, currentX, lineY);
+
+                if (time >= s.begin) {
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = cfg.accent;
+                    if (time < s.end) {
+                        const p = (time - s.begin) / (s.end - s.begin);
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(currentX, lineY - fontSizeMain, wordWidth * p, fontSizeMain * 2.5);
+                        ctx.clip();
+                        ctx.fillText(s.text, currentX, lineY);
+                        ctx.restore();
+                    } else {
+                        ctx.fillText(s.text, currentX, lineY);
+                    }
+                }
+                currentX += wordWidth;
+            });
+        });
+        ctx.textAlign = 'center';
     } else {
         // Standard Rendering
         mainLines.forEach((t, i) => {
