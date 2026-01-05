@@ -455,13 +455,13 @@ function injectInstrumental(index) {
     const end = nextLine.time;
 
     const instrumentalLine = {
-        text: '🎵',
-        trans: '🎵',
+        text: '♫',
+        trans: '♫',
         time: start,
         endTime: end,
         type: 'instrumental',
         syllables: [
-            { text: '🎵', begin: start, end: end }
+            { text: '♫', begin: start, end: end }
         ]
     };
 
@@ -1015,3 +1015,4 @@ function exportVideo() {
 }
 
 init();
+
