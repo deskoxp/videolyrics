@@ -14,14 +14,16 @@ const EffectsRegistry = {
     },
 
     glitch: (ctx, { w, h }) => {
-    // FIX ANTI-LAG: Reduce intensidad y frecuencia del shake
-    const shakeX = (Math.random() - 0.5) * 8;  // Era 20, ahora 8
-    const shakeY = (Math.random() - 0.5) * 2;  // Era 5, ahora 2
-    ctx.translate(shakeX, shakeY);
-    
-    // Exclusion solo 30% del tiempo (era 20%, pero menos frames)
-    if (Math.random() > 0.9) {  // Era 0.8, ahora 0.9 (menos frecuente)
-        ctx.globalCompositeOperation = 'exclusion';
+    // Dibuja "líneas rotas" sobre el frame ya renderizado
+    if (Math.random() > 0.7) {
+        const y = Math.random() * h;
+        const lineH = Math.random() * 5 + 2;
+        ctx.fillStyle = 'rgba(255,0,100,0.3)';
+        ctx.fillRect(0, y, w, lineH);
+        
+        // Offset horizontal en esa franja
+        const slice = ctx.getImageData(0, y, w, lineH);
+        ctx.putImageData(slice, Math.random() * 10 - 5, y);
     }
 },
 
@@ -64,4 +66,5 @@ const EffectsRegistry = {
 };
 
 window.EffectsRegistry = EffectsRegistry;
+
 
