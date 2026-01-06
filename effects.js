@@ -5,66 +5,79 @@
  */
 
 const EffectsRegistry = {
-    // --- EFECTOS BASE ---
 
-    pulse: (ctx, { scale, avgVol }) => {
-        let s = scale * 0.5;
-        s += (avgVol / 255) * 0.5;
+    pulse(ctx, { scale, avgVol }) {
+        const s = scale * (1 + (avgVol / 255) * 0.4);
         ctx.scale(s, s);
     },
 
-    glitch: (ctx, { w, h }) => {
-    // Dibuja "líneas rotas" sobre el frame ya renderizado
-    if (Math.random() > 0.7) {
-        const y = Math.random() * h;
-        const lineH = Math.random() * 5 + 2;
-        ctx.fillStyle = 'rgba(255,0,100,0.3)';
-        ctx.fillRect(0, y, w, lineH);
-        
-        // Offset horizontal en esa franja
-        const slice = ctx.getImageData(0, y, w, lineH);
-        ctx.putImageData(slice, Math.random() * 10 - 5, y);
-    }
-},
+    glitch(ctx, { time, avgVol }) {
+        const intensity = (avgVol / 255) * 12;
+        const t = time * 30;
 
-    flash: (ctx) => {
-        if (Math.floor(Date.now() / 50) % 2 === 0) {
-            ctx.fillStyle = '#fff';
-            ctx.shadowBlur = 100;
+        const x = Math.sin(t * 1.3) * intensity;
+        const y = Math.cos(t * 0.9) * (intensity * 0.3);
+
+        ctx.translate(x, y);
+
+        // micro glitch RGB ocasional
+        if ((Math.floor(t) % 6) === 0) {
+            ctx.globalAlpha = 0.95;
+        }
+    },
+
+    flash(ctx, { time, duration }) {
+        // Flash SOLO al inicio de la línea
+        if (duration < 0.12) {
+            const p = 1 - (duration / 0.12);
+            ctx.fillStyle = `rgba(255,255,255,${p})`;
+            ctx.shadowBlur = 80 * p;
             ctx.shadowColor = '#fff';
         }
     },
 
-    // --- EFECTOS EXTRA (Agrega los tuyos aquí) ---
-
-    neon_flicker: (ctx) => {
-        // Simula un neón fallando
-        const flicker = Math.random() > 0.9 ? 0.3 : 1;
-        ctx.globalAlpha *= flicker;
-        ctx.shadowBlur = 30 * flicker;
+    neon_flicker(ctx, { time }) {
+        // flicker senoidal suave
+        const flicker = 0.85 + Math.sin(time * 40) * 0.15;
+        ctx.globalAlpha = flicker;
+        ctx.shadowBlur = 35 * flicker;
     },
 
-    rainbow: (ctx) => {
-        // Ciclo de colores RGB
-        const hue = (Date.now() / 20) % 360;
-        ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
-        ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-        ctx.shadowBlur = 20;
+    rainbow(ctx, { time }) {
+        const hue = (time * 120) % 360;
+        ctx.fillStyle = `hsl(${hue},100%,70%)`;
+        ctx.shadowColor = `hsl(${hue},100%,55%)`;
+        ctx.shadowBlur = 24;
     },
 
-    shake: (ctx, { avgVol }) => {
-        // Temblor reactivo al volumen
-        const intensity = (avgVol / 255) * 15;
-        ctx.translate((Math.random() - 0.5) * intensity, (Math.random() - 0.5) * intensity);
+    shake(ctx, { avgVol }) {
+        const i = (avgVol / 255) * 8;
+        ctx.translate(
+            (Math.random() - 0.5) * i,
+            (Math.random() - 0.5) * i
+        );
     },
 
-    floating: (ctx) => {
-        // Movimiento suave de flotación
-        const y = Math.sin(Date.now() / 500) * 15;
-        ctx.translate(0, y);
+    floating(ctx, { time }) {
+        ctx.translate(0, Math.sin(time * 2) * 12);
+    },
+
+    // 🔥 nuevos efectos optimizados
+
+    glow_pulse(ctx, { time }) {
+        const p = (Math.sin(time * 3) + 1) / 2;
+        ctx.shadowBlur = 20 + p * 30;
+        ctx.globalAlpha = 0.8 + p * 0.2;
+    },
+
+    wave(ctx, { time }) {
+        ctx.translate(Math.sin(time * 6) * 10, 0);
+    },
+
+    chroma(ctx, { time }) {
+        const o = Math.sin(time * 20) * 3;
+        ctx.translate(o, 0);
     }
 };
 
 window.EffectsRegistry = EffectsRegistry;
-
-
