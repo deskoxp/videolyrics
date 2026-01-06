@@ -14,11 +14,16 @@ const EffectsRegistry = {
     },
 
     glitch: (ctx, { w, h }) => {
-        const shakeX = (Math.random() - 0.5) * 20;
-        const shakeY = (Math.random() - 0.5) * 5;
-        ctx.translate(shakeX, shakeY);
-        if (Math.random() > 0.8) ctx.globalCompositeOperation = 'exclusion';
-    },
+    // FIX ANTI-LAG: Reduce intensidad y frecuencia del shake
+    const shakeX = (Math.random() - 0.5) * 8;  // Era 20, ahora 8
+    const shakeY = (Math.random() - 0.5) * 2;  // Era 5, ahora 2
+    ctx.translate(shakeX, shakeY);
+    
+    // Exclusion solo 30% del tiempo (era 20%, pero menos frames)
+    if (Math.random() > 0.9) {  // Era 0.8, ahora 0.9 (menos frecuente)
+        ctx.globalCompositeOperation = 'exclusion';
+    }
+},
 
     flash: (ctx) => {
         if (Math.floor(Date.now() / 50) % 2 === 0) {
@@ -59,3 +64,4 @@ const EffectsRegistry = {
 };
 
 window.EffectsRegistry = EffectsRegistry;
+
